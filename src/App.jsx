@@ -1,6 +1,7 @@
 import './App.css'
 import {useState, useRef, useEffect} from 'react'
 import { WebMediaPublisher } from './WebMediaPublisher';
+import { WebMediaSubscriber } from './WebMediaSubscriber';
 
 function App() {
   const [mediaDevices, setMediaDevices] = useState([]);
@@ -100,6 +101,20 @@ function App() {
       })
   }
 
+  const subscribeMediaStream = () => {
+    const subscriber = WebMediaSubscriber('http://localhost:1985', 'webrtc://localhost');
+
+    subscriber.subscribe('testApp','testFeed')
+      .then(session => {
+        console.log("subscribe 성공", session);
+        if(remotePlayerRef.current) {
+          remotePlayerRef.current.srcObject = subscriber.stream;
+        }
+      })
+      .catch(error => {
+        console.log("subscribe 실패", error);
+      })
+  }
   return (
     <>
       <div className="horizontal-start-box">
@@ -111,7 +126,8 @@ function App() {
           ))}
         </select>  
         <input type="button" value="미디어 요청" onClick={requestMediaStream} />
-        <input type="button" value="미디어 전송" onClick={publishMediaStream}/>
+        <input type="button" value="미디어 전송" disabled={!mediaStream} onClick={publishMediaStream}/>
+        <input type="button" value="미디어 수신" disabled={!isPublished} onClick={subscribeMediaStream}/>
       </div>
       <div className="horizontal-start-box">
         <video ref={mediaPlayerRef} autoPlay muted style={{width: '640px', height: '320px', background: 'black', objectFit: 'contain'}} />
